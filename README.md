@@ -104,13 +104,18 @@ The MCP MariaDB Server provides **optional** embedding and vector store capabili
 - **OpenAI**
 - **Gemini**
 - **Open models from Huggingface**
+- **Open models from Ollama**
 
 ### Configuration
 
-- `EMBEDDING_PROVIDER`: Set to `openai`, `gemini`, `huggingface`, or leave unset to disable
+- `EMBEDDING_PROVIDER`: Set to `openai`, `gemini`, `huggingface`, `ollama` or leave unset to disable
 - `OPENAI_API_KEY`: Required if using OpenAI embeddings
 - `GEMINI_API_KEY`: Required if using Gemini embeddings
 - `HF_MODEL`: Required if using HuggingFace embeddings (e.g., "intfloat/multilingual-e5-large-instruct" or "BAAI/bge-m3")
+- `OLLAMA_HOST`: Required if using Ollama embeddings
+- `OLLAMA_PORT`: Required if using Ollama embeddings
+- `OLLAMA_MODEL`: Required if using Ollama embeddings
+
 ### Model Selection
 
 - Default and allowed models are configurable in code (`DEFAULT_OPENAI_MODEL`, `ALLOWED_OPENAI_MODELS`)
@@ -130,22 +135,25 @@ A vector store table has the following columns:
 
 All configuration is via environment variables (typically set in a `.env` file):
 
-| Variable               | Description                                            | Required | Default      |
-|------------------------|--------------------------------------------------------|----------|--------------|
-| `DB_HOST`              | MariaDB host address                                   | Yes      | `localhost`  |
-| `DB_PORT`              | MariaDB port                                           | No       | `3306`       |
-| `DB_USER`              | MariaDB username                                       | Yes      |              |
-| `DB_PASSWORD`          | MariaDB password                                       | Yes      |              |
-| `DB_NAME`              | Default database (optional; can be set per query)      | No       |              |
-| `DB_CHARSET`           | Character set for database connection (e.g., `cp1251`) | No       | MariaDB default |
-| `MCP_READ_ONLY`        | Enforce read-only SQL mode (`true`/`false`)            | No       | `true`       |
-| `MCP_MAX_POOL_SIZE`    | Max DB connection pool size                            | No       | `10`         |
-| `EMBEDDING_PROVIDER`   | Embedding provider (`openai`/`gemini`/`huggingface`)   | No     |`None`(Disabled)|
-| `OPENAI_API_KEY`       | API key for OpenAI embeddings                          | Yes (if EMBEDDING_PROVIDER=openai) | |
-| `GEMINI_API_KEY`       | API key for Gemini embeddings                          | Yes (if EMBEDDING_PROVIDER=gemini) | |
-| `HF_MODEL`             | Open models from Huggingface                           | Yes (if EMBEDDING_PROVIDER=huggingface) | |
-| `ALLOWED_ORIGINS`      | Comma-separated list of allowed origins                | No       | Long list of allowed origins corresponding to local use of the server |
-| `ALLOWED_HOSTS`        | Comma-separated list of allowed hosts                  | No       | `localhost,127.0.0.1` |
+| Variable               | Description                                                     | Required | Default      |
+|------------------------|-----------------------------------------------------------------|----------|--------------|
+| `DB_HOST`              | MariaDB host address                                            | Yes      | `localhost`  |
+| `DB_PORT`              | MariaDB port                                                    | No       | `3306`       |
+| `DB_USER`              | MariaDB username                                                | Yes      |              |
+| `DB_PASSWORD`          | MariaDB password                                                | Yes      |              |
+| `DB_NAME`              | Default database (optional; can be set per query)               | No       |              |
+| `DB_CHARSET`           | Character set for database connection (e.g., `cp1251`)          | No       | MariaDB default |
+| `MCP_READ_ONLY`        | Enforce read-only SQL mode (`true`/`false`)                     | No       | `true`       |
+| `MCP_MAX_POOL_SIZE`    | Max DB connection pool size                                     | No       | `10`         |
+| `EMBEDDING_PROVIDER`   | Embedding provider (`openai`/`gemini`/`huggingface`/`ollama`)   | No     |`None`(Disabled)|
+| `OPENAI_API_KEY`       | API key for OpenAI embeddings                                   | Yes (if EMBEDDING_PROVIDER=openai) | |
+| `GEMINI_API_KEY`       | API key for Gemini embeddings                                   | Yes (if EMBEDDING_PROVIDER=gemini) | |
+| `HF_MODEL`             | Open models from Huggingface                                    | Yes (if EMBEDDING_PROVIDER=huggingface) | |
+| `OLLAMA_HOST`          | Ollama host address                                             | Yes (if EMBEDDING_PROVIDER=ollama) | `localhost` |
+| `OLLAMA_PORT`          | Ollama port                                                     | Yes (if EMBEDDING_PROVIDER=ollama) | `11434` |
+| `OLLAMA_MODEL`         | Open models from Ollama                                         | Yes (if EMBEDDING_PROVIDER=ollama) | |
+| `ALLOWED_ORIGINS`      | Comma-separated list of allowed origins                         | No       | Long list of allowed origins corresponding to local use of the server |
+| `ALLOWED_HOSTS`        | Comma-separated list of allowed hosts                           | No       | `localhost,127.0.0.1` |
 
 Note that if using 'http' or 'sse' as the transport, configuring authentication is important for security if you allow connections outside of localhost. Because different organizations use different authentication methods, the server does not provide a default authentication method. You will need to configure your own authentication method. Thankfully FastMCP provides a simple way to do this starting with version 2.12.1. See the [FastMCP documentation](https://gofastmcp.com/servers/auth/authentication#environment-configuration) for more information. We have provided an example configuration below.
 
@@ -166,6 +174,9 @@ EMBEDDING_PROVIDER=openai
 OPENAI_API_KEY=sk-...
 GEMINI_API_KEY=AI...
 HF_MODEL="BAAI/bge-m3"
+OLLAMA_HOST=localhost
+OLLAMA_PORT=11434
+OLLAMA_MODEL="nomic-embed-text"
 ```
 
 **Without Embedding Support:**
