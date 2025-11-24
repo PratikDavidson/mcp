@@ -21,6 +21,9 @@ import asyncmy
 import anyio 
 from fastmcp import FastMCP, Context
 
+# Import custom connection pool that disables MULTI_STATEMENTS
+from custom_connection import create_safe_pool
+
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -134,8 +137,8 @@ class MariaDBServer:
                 logger.info(f"Creating connection pool for {DB_USER}@{DB_HOST}:{DB_PORT}/{DB_NAME} (max size: {MCP_MAX_POOL_SIZE}, charset: {DB_CHARSET})")
             else:
                 logger.info(f"Creating connection pool for {DB_USER}@{DB_HOST}:{DB_PORT}/{DB_NAME} (max size: {MCP_MAX_POOL_SIZE})")
-
-            self.pool = await asyncmy.create_pool(**pool_params)
+            
+            self.pool = await create_safe_pool(**pool_params)
             logger.info("Connection pool initialized successfully.")
         except AsyncMyError as e:
             logger.error(f"Failed to initialize database connection pool: {e}", exc_info=True)
