@@ -25,7 +25,7 @@ The MCP MariaDB Server exposes a set of tools for interacting with MariaDB datab
 - Retrieving table schemas
 - Executing safe, read-only SQL queries
 - Creating and managing vector stores for embedding-based search
-- Integrating with embedding providers (currently OpenAI, Gemini, and HuggingFace) (optional)
+- Integrating with embedding providers (currently OpenAI, Gemini, HuggingFace and Ollama) (optional)
 
 ---
 
@@ -135,25 +135,31 @@ A vector store table has the following columns:
 
 All configuration is via environment variables (typically set in a `.env` file):
 
-| Variable               | Description                                                     | Required | Default      |
-|------------------------|-----------------------------------------------------------------|----------|--------------|
-| `DB_HOST`              | MariaDB host address                                            | Yes      | `localhost`  |
-| `DB_PORT`              | MariaDB port                                                    | No       | `3306`       |
-| `DB_USER`              | MariaDB username                                                | Yes      |              |
-| `DB_PASSWORD`          | MariaDB password                                                | Yes      |              |
-| `DB_NAME`              | Default database (optional; can be set per query)               | No       |              |
-| `DB_CHARSET`           | Character set for database connection (e.g., `cp1251`)          | No       | MariaDB default |
-| `MCP_READ_ONLY`        | Enforce read-only SQL mode (`true`/`false`)                     | No       | `true`       |
-| `MCP_MAX_POOL_SIZE`    | Max DB connection pool size                                     | No       | `10`         |
-| `EMBEDDING_PROVIDER`   | Embedding provider (`openai`/`gemini`/`huggingface`/`ollama`)   | No     |`None`(Disabled)|
-| `OPENAI_API_KEY`       | API key for OpenAI embeddings                                   | Yes (if EMBEDDING_PROVIDER=openai) | |
-| `GEMINI_API_KEY`       | API key for Gemini embeddings                                   | Yes (if EMBEDDING_PROVIDER=gemini) | |
-| `HF_MODEL`             | Open models from Huggingface                                    | Yes (if EMBEDDING_PROVIDER=huggingface) | |
-| `OLLAMA_HOST`          | Ollama host address                                             | Yes (if EMBEDDING_PROVIDER=ollama) | `localhost` |
-| `OLLAMA_PORT`          | Ollama port                                                     | Yes (if EMBEDDING_PROVIDER=ollama) | `11434` |
-| `OLLAMA_MODEL`         | Open models from Ollama                                         | Yes (if EMBEDDING_PROVIDER=ollama) | |
-| `ALLOWED_ORIGINS`      | Comma-separated list of allowed origins                         | No       | Long list of allowed origins corresponding to local use of the server |
-| `ALLOWED_HOSTS`        | Comma-separated list of allowed hosts                           | No       | `localhost,127.0.0.1` |
+| Variable               | Description                                            | Required | Default      |
+|------------------------|--------------------------------------------------------|----------|--------------|
+| `DB_HOST`              | MariaDB host address                                   | Yes      | `localhost`  |
+| `DB_PORT`              | MariaDB port                                           | No       | `3306`       |
+| `DB_USER`              | MariaDB username                                       | Yes      |              |
+| `DB_PASSWORD`          | MariaDB password                                       | Yes      |              |
+| `DB_NAME`              | Default database (optional; can be set per query)      | No       |              |
+| `DB_CHARSET`           | Character set for database connection (e.g., `cp1251`) | No       | MariaDB default |
+| `DB_SSL`               | Enable SSL/TLS for database connection (`true`/`false`) | No      | `false`      |
+| `DB_SSL_CA`            | Path to CA certificate file for SSL verification       | No       |              |
+| `DB_SSL_CERT`          | Path to client certificate file for SSL authentication | No       |              |
+| `DB_SSL_KEY`           | Path to client private key file for SSL authentication | No       |              |
+| `DB_SSL_VERIFY_CERT`   | Verify server certificate (`true`/`false`)             | No       | `true`       |
+| `DB_SSL_VERIFY_IDENTITY` | Verify server hostname identity (`true`/`false`)     | No       | `false`      |
+| `MCP_READ_ONLY`        | Enforce read-only SQL mode (`true`/`false`)            | No       | `true`       |
+| `MCP_MAX_POOL_SIZE`    | Max DB connection pool size                            | No       | `10`         |
+| `EMBEDDING_PROVIDER`   | Embedding provider (`openai`/`gemini`/`huggingface`)   | No     |`None`(Disabled)|
+| `OPENAI_API_KEY`       | API key for OpenAI embeddings                          | Yes (if EMBEDDING_PROVIDER=openai) | |
+| `GEMINI_API_KEY`       | API key for Gemini embeddings                          | Yes (if EMBEDDING_PROVIDER=gemini) | |
+| `HF_MODEL`             | Open models from Huggingface                           | Yes (if EMBEDDING_PROVIDER=huggingface) | |
+| `OLLAMA_HOST`          | Ollama host address                                    | Yes (if EMBEDDING_PROVIDER=ollama) | `localhost` |
+| `OLLAMA_PORT`          | Ollama port                                            | Yes (if EMBEDDING_PROVIDER=ollama) | `11434` |
+| `OLLAMA_MODEL`         | Open models from Ollama                                | Yes (if EMBEDDING_PROVIDER=ollama) | |
+| `ALLOWED_ORIGINS`      | Comma-separated list of allowed origins                | No       | Long list of allowed origins corresponding to local use of the server |
+| `ALLOWED_HOSTS`        | Comma-separated list of allowed hosts                  | No       | `localhost,127.0.0.1` |
 
 Note that if using 'http' or 'sse' as the transport, configuring authentication is important for security if you allow connections outside of localhost. Because different organizations use different authentication methods, the server does not provide a default authentication method. You will need to configure your own authentication method. Thankfully FastMCP provides a simple way to do this starting with version 2.12.1. See the [FastMCP documentation](https://gofastmcp.com/servers/auth/authentication#environment-configuration) for more information. We have provided an example configuration below.
 
@@ -189,6 +195,33 @@ DB_NAME=your_default_database
 MCP_READ_ONLY=true
 MCP_MAX_POOL_SIZE=10
 ```
+
+**With SSL/TLS Enabled:**
+```dotenv
+DB_HOST=your-remote-host.com
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_PORT=3306
+DB_NAME=your_default_database
+
+# Enable SSL
+DB_SSL=true
+DB_SSL_CA=~/.mysql/ca-cert.pem
+DB_SSL_CERT=~/.mysql/client-cert.pem
+DB_SSL_KEY=~/.mysql/client-key.pem
+DB_SSL_VERIFY_CERT=true
+DB_SSL_VERIFY_IDENTITY=false
+
+MCP_READ_ONLY=true
+MCP_MAX_POOL_SIZE=10
+```
+
+**Note on SSL Configuration:**
+- All SSL certificate paths support `~` for home directory expansion
+- `DB_SSL_CA` is used to verify the server's certificate
+- `DB_SSL_CERT` and `DB_SSL_KEY` are used for client certificate authentication (mutual TLS)
+- Set `DB_SSL_VERIFY_CERT=false` only for testing with self-signed certificates
+- Set `DB_SSL_VERIFY_IDENTITY=true` to enable strict hostname verification
 
 **Example Authentication Configuration:**
 This configuration uses external web authentication via GitHub or Google. If you have internal JWT authentication (desired for organizations who manage their own services), you can use the JWT provider instead.
