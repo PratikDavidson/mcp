@@ -93,8 +93,10 @@ OLLAMA_PORT = os.getenv("OLLAMA_PORT", 11434)
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL")
 
 # --- Validation ---
-if not all([DB_USER, DB_PASSWORD]):
-    logger.error("Database credentials (DB_USER, DB_PASSWORD) not found in environment variables or .env file.")
+if not DB_USER:
+    logger.error("DB_USER is empty or missing from the environment or .env file.")
+if DB_PASSWORD is None:
+    logger.error("DB_PASSWORD is missing from the environment or .env file.")
 
 # Embedding Provider and Keys
 logger.info(f"Selected Embedding Provider: {EMBEDDING_PROVIDER}")
